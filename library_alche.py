@@ -24,7 +24,6 @@ class book(db.Model):
     category_id = db.Column(db.Integer)
     books = db.relationship('book_writer', backref='info_book', lazy='dynamic')
     borrowed = db.relationship('borrow', backref='info_book_borrow', lazy='dynamic')
-    # users = db.relationship('borrow', backref='info_user_borrow', lazy='dynamic')
 
 class writer(db.Model):
     id = db.Column(db.Integer, primary_key=True, nullable=False, autoincrement=True)
