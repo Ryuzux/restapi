@@ -415,7 +415,7 @@ def update_borrow_status():
     return jsonify({
         'id': borrow_entry.id,
         'book_id': borrow_entry.book_id,
-        'title': borrow_entry.info_book.title,
+        'title': borrow_entry.info_book_borrow.title,
         'user': borrow_entry.info_user.username,
         'status': 'borrow' if borrow_entry.status else 'returned',
         'confirm_by': 'admin' if borrow_entry else 'unconfirmed',
