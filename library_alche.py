@@ -436,27 +436,39 @@ def update_borrow_status():
             'days_late': borrow_entry.days_late if borrow_entry else 0
     }}), 200
 
-@app.route('/history/')
+@app.route('/report/')
 @auth.login_required
 @user.admin_required
-def get_history():
-    bor = borrow.query.all()
+def get_report():
+    start = request.form.get('start_date')
+    end = request.form.get('end_date')
+    late = request.form.get('days_late')
+    filtered = borrow.query
+    if start:
+        filtered = filtered.filter(borrow.start_date >= start)
+    if end:
+        filtered = filtered.filter(borrow.end_date <= end)
+    if late:
+        filtered = filtered.filter(borrow.days_late == late)
+
     result = [
         {'info_borrow':
-        {'id': Borrow.id,
-        'book_id': Borrow.book_id,
-        'user': Borrow.info_user.username,
-        'title': Borrow.info_book_borrow.title,
-        'confirm_by': 'admin' if Borrow.confirmation else 'unconfirmed'
-        },
+            {'id': el.id,
+            'book_id': el.book_id,
+            'user': el.info_user.username,
+            'title': el.info_book_borrow.title,
+            'confirm_by': 'admin' if el.confirmation else 'unconfirmed'
+            },
             'info_date':
-            {'start_date': Borrow.start_date.strftime('%Y-%m-%d'),
-            'end_date': Borrow.end_date.strftime('%Y-%m-%d'),
-            'return_date': Borrow.return_date.strftime('%Y-%m-%d') if Borrow.return_date else None,
-            'days_late': Borrow.days_late if Borrow.days_late else 0,
-            'status': 'borrowed' if Borrow.status else 'returned'}
-                } for Borrow in bor
+            {'start_date': el.start_date.strftime('%Y-%m-%d'),
+            'end_date': el.end_date.strftime('%Y-%m-%d'),
+            'return_date': el.return_date.strftime('%Y-%m-%d') if el.return_date else None,
+            'days_late': el.days_late if el.days_late else 0,
+            'status': 'borrowed' if el.status else 'returned'
+        }} for el in filtered.all()
+        
     ]
+
     return jsonify(result)
 
 
