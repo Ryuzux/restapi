@@ -265,15 +265,15 @@ def get_borrow(current_user):
     if not borrowed_books:
         return jsonify({'message': 'No currently borrowed books found for {}'.format(name)})
     result = [{
-        'id': borrow_user.id,
-        'book_id': borrow_user.book_id,
-        'user': borrow_user.info_user.username,
-        'title': borrow_user.info_book_borrow.title,
-        'start_date': borrow_user.start_date.strftime('%Y-%m-%d'),
-        'confirm_by': 'admin' if borrow_user.confirmation else 'unconfirmed',
-        'end_date': borrow_user.end_date.strftime('%Y-%m-%d'),
-        'status': 'borrowed' if borrow_user.status else 'returned'
-    } for borrow_user in borrowed_books]
+        'id': el.id,
+        'book_id': el.book_id,
+        'user': el.info_user.username,
+        'title': el.info_book_borrow.title,
+        'start_date': el.start_date.strftime('%Y-%m-%d'),
+        'confirm_by': 'admin' if el.confirmation else 'unconfirmed',
+        'end_date': el.end_date.strftime('%Y-%m-%d'),
+        'status': 'borrowed' if el.status else 'returned'
+    } for el in borrowed_books]
     return jsonify(result)
 
 @app.route('/borrow/', methods=['POST'])
@@ -297,17 +297,18 @@ def add_borrow(current_user):
     db.session.commit()
     return jsonify(
         {'info_borrow':        
-        {'id': new_borrow.id,
-        'book_id': new_borrow.book_id,
-        'title': new_borrow.info_book_borrow.title,
-        'user': new_borrow.info_user.username,
-        'confirm_by': 'unconfirmed'},
+            {'id': new_borrow.id,
+            'book_id': new_borrow.book_id,
+            'title': new_borrow.info_book_borrow.title,
+            'user': new_borrow.info_user.username,
+            'confirm_by': 'unconfirmed'
+        },
         'info_date':
-        {'status': 'ready to borrow',
-        'start_date': new_borrow.start_date.strftime('%Y-%m-%d'),
-        'end_date': new_borrow.end_date.strftime('%Y-%m-%d'),
-        'return_date': new_borrow.return_date,
-        'days_late': new_borrow.days_late if new_borrow.days_late else 0
+            {'status': 'ready to borrow',
+            'start_date': new_borrow.start_date.strftime('%Y-%m-%d'),
+            'end_date': new_borrow.end_date.strftime('%Y-%m-%d'),
+            'return_date': new_borrow.return_date,
+            'days_late': new_borrow.days_late if new_borrow.days_late else 0
     }})
 
 @app.route('/borrow/update', methods=['PUT'])
@@ -336,12 +337,12 @@ def update_borrow_confirm():
     db.session.commit()
     return jsonify(
         {'info_borrow':
-        {'id': borrow_entry.id,
-        'book_id': borrow_entry.book_id,
-        'title': borrow_entry.info_book_borrow.title,
-        'user': borrow_entry.info_user.username,
-        'confirm_by': 'admin' if borrow_entry else 'unconfirmed',
-        'status': 'borrow' if borrow_entry.status else 'returned'
+            {'id': borrow_entry.id,
+            'book_id': borrow_entry.book_id,
+            'title': borrow_entry.info_book_borrow.title,
+            'user': borrow_entry.info_user.username,
+            'confirm_by': 'admin' if borrow_entry else 'unconfirmed',
+            'status': 'borrow' if borrow_entry.status else 'returned'
         },
             'info_date':
             {'start_date': borrow_entry.start_date.strftime('%Y-%m-%d'),
@@ -383,10 +384,10 @@ def update_return_confirm(current_user):
     db.session.commit()
     return jsonify(
         {'info_borrow':
-        {'id': borrow_entry.id,
-        'book_id': borrow_entry.book_id,
-        'user': current_user.username,
-        'confirm_by': 'admin' if borrow_entry.confirmation else 'unconfirmed',
+            {'id': borrow_entry.id,
+            'book_id': borrow_entry.book_id,
+            'user': current_user.username,
+            'confirm_by': 'admin' if borrow_entry.confirmation else 'unconfirmed',
         },
             'info_date':
             {'status': 'borrow' if borrow_entry.status else 'returned',
@@ -422,11 +423,11 @@ def update_borrow_status():
     db.session.commit()
     return jsonify(
         {'info_borrow':
-        {'id': borrow_entry.id,
-        'book_id': borrow_entry.book_id,
-        'title': borrow_entry.info_book_borrow.title,
-        'user': borrow_entry.info_user.username,
-        'confirm_by': 'admin' if borrow_entry else 'unconfirmed',
+            {'id': borrow_entry.id,
+            'book_id': borrow_entry.book_id,
+            'title': borrow_entry.info_book_borrow.title,
+            'user': borrow_entry.info_user.username,
+            'confirm_by': 'admin' if borrow_entry else 'unconfirmed',
         },
             'info_date':
             {'status': 'borrow' if borrow_entry.status else 'returned',
@@ -449,7 +450,7 @@ def get_report():
     if end:
         filtered = filtered.filter(borrow.end_date <= end)
     if late:
-        filtered = filtered.filter(borrow.days_late == late)
+        filtered = filtered.filter(borrow.days_late > late)
 
     result = [
         {'info_borrow':
@@ -459,16 +460,14 @@ def get_report():
             'title': el.info_book_borrow.title,
             'confirm_by': 'admin' if el.confirmation else 'unconfirmed'
             },
-            'info_date':
+        'info_date':
             {'start_date': el.start_date.strftime('%Y-%m-%d'),
             'end_date': el.end_date.strftime('%Y-%m-%d'),
             'return_date': el.return_date.strftime('%Y-%m-%d') if el.return_date else None,
             'days_late': el.days_late if el.days_late else 0,
             'status': 'borrowed' if el.status else 'returned'
         }} for el in filtered.all()
-        
     ]
-
     return jsonify(result)
 
 
