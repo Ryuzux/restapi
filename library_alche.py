@@ -55,7 +55,7 @@ class borrow(db.Model):
             self.return_date = datetime.strftime(self.return_date, '%Y-%m-%d').date()
         except AttributeError:
             pass
-        self.days_late = (self.return_date - self.end_date).days
+        days_late = (self.return_date - self.end_date).days
 
 class user(db.Model):
     id = db.Column(db.Integer, primary_key=True, index=True, nullable=False)
@@ -301,7 +301,8 @@ def add_borrow(current_user):
             'book_id': new_borrow.book_id,
             'title': new_borrow.info_book_borrow.title,
             'user': new_borrow.info_user.username,
-            'confirm_by': 'unconfirmed'
+            'confirm_by': 'unconfirmed',
+            'charge': f'Rp {(new_borrow.end_date - new_borrow.start_date).days * 1000}'
         },
         'info_date':
             {'status': 'ready to borrow',
@@ -458,7 +459,9 @@ def get_report():
             'book_id': el.book_id,
             'user': el.info_user.username,
             'title': el.info_book_borrow.title,
-            'confirm_by': 'admin' if el.confirmation else 'unconfirmed'
+            'confirm_by': 'admin' if el.confirmation else 'unconfirmed',
+            'fine': f'Rp {el.days_late * 1000}',
+            'charge': f'Rp {(el.end_date - el.start_date).days * 1000}'
             },
         'info_date':
             {'start_date': el.start_date.strftime('%Y-%m-%d'),
