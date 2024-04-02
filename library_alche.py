@@ -51,11 +51,8 @@ class borrow(db.Model):
     days_late = db.Column(db.Integer, default=0)
 
     def count_days_late(self):
-        try:
-            self.return_date = datetime.strftime(self.return_date, '%Y-%m-%d').date()
-        except AttributeError:
-            pass
-        days_late = (self.return_date - self.end_date).days
+        self.days_late = (self.return_date - self.end_date).days
+
 
 class user(db.Model):
     id = db.Column(db.Integer, primary_key=True, index=True, nullable=False)
@@ -70,7 +67,7 @@ class user(db.Model):
         User = user.query.filter_by(username=username).first()
         if User and User.password == password:
             return User
-        
+ 
     def admin_required(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
@@ -348,7 +345,7 @@ def update_borrow_confirm():
             'info_date':
             {'start_date': borrow_entry.start_date.strftime('%Y-%m-%d'),
             'end_date': borrow_entry.end_date.strftime('%Y-%m-%d'),
-            'return_date': borrow_entry.return_date,
+            'return_date': borrow_entry.return_date.strftime('%Y-%m-%d'),
             'days_late': borrow_entry.days_late if borrow_entry else 0
     }}), 200
 
@@ -388,6 +385,7 @@ def update_return_confirm(current_user):
             {'id': borrow_entry.id,
             'book_id': borrow_entry.book_id,
             'user': current_user.username,
+            'title': borrow_entry.info_book_borrow.title,
             'confirm_by': 'admin' if borrow_entry.confirmation else 'unconfirmed',
         },
             'info_date':
